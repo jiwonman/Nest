@@ -1,6 +1,7 @@
-import { Controller, Get } from '@nestjs/common';
-import { Board } from './board.model';
+import { Body, Controller, Get, Post, Param, Delete, Patch, ParseIntPipe, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Board, BoardStatus } from './board.model';
 import { BoardsService } from './boards.service';
+import { CreateBoardDto } from './dto/create-board.dto';
 
 @Controller('boards')
 // BoardController에서 BoardService를 이용할 수 있게 하기 위해서(Dependency Injection)
@@ -17,10 +18,40 @@ export class BoardsController {
     // Javascript에서는 접근 제한자(public, private 등)을 사용할 수 없음.
     constructor(private boardsService: BoardsService) {}
 
-    @Get()
+    @Get('/')
     getAllTask(): Board[] {
         return this.boardsService.getAllBoards();
     }
 
-    // @Get('/:id')
+    @Post()
+    @UsePipes(ValidationPipe)
+    createBoard(
+        @Body() createBoardDto: CreateBoardDto): Board
+        // @Body('title') title: string,
+        // @Body('description') description: string,
+        {
+        // console.log('title', title);
+        // console.log('description', description);
+        // return this.boardsService.createBoard(title, description);
+        return this.boardsService.createBoard(createBoardDto);
+    }
+
+    @Get('/:id')
+    getBoardById(@Param('id') id: string): Board {
+        return this.boardsService.getBoardById(id);
+    }
+
+    @Delete("/:id")
+    deleteBoard(@Param('id') id:string) : void {
+        this.boardsService.deleteBoard(id);
+        console.log('id 지워짐', id);
+    }
+
+    @Patch("/:id/status")
+    updateBoardStatus(
+        @Param('id') id: string,
+        @Body('status') status: BoardStatus,
+    ) {
+        return this.boardsService.updateBoardStatus(id, status);
+    }
 }
