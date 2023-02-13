@@ -225,5 +225,169 @@ export class BoardsModule {}
 ### 타입을 정의해주면 좋은 이유
 - 타입 정의해주는 것은 선택사항입니다. 
 - 하지만 이렇게 타입을 정의해주므로서 원하는 타입과 다른 코드를 사용할 시 에러가 발생합니다. 
-
 - 그리고 코드를 읽는 입장에서 더 코드를 쉽게 이해하며 읽을 수 있습니다. (readable)
+
+### DTO (Data Transfer Object)란?
+- 계층간 데이터 교환을 위한 객체입니다.
+- DB에서 데이터를 얻어 Service나 Controller 등으로 보낼 때 사용하는 객체를 말합니다.
+
+- DTO는 데이터가 네트워크를 통해 전송되는 방법을 정의하는 객체입니다.
+
+- interface나 class를 이용해서 정의 될 수 있습니다. (하지만 클래스를 이용하는것을 Nest JS에서는 추천하고 있습니다)
+
+### DTO를 쓰는 이유?
+- 데이터 유효성 체크에 효율적이다.
+- 더 안정적인 코드를 만들어준다. 
+
+### Interface VS Class For DTO
+- DTO는 Interface나 Class를 사용해서 만든다. 그러나 Class가 더 선호된다 그 이유는?
+
+- TypeScript 인터페이스를 사용하거나 간단한 클래스를 사용하여 DTO 스키마를 결정할 수 있습니다. 흥미롭게도 여기에서 Class를 사용하는 것이 좋습니다. 왜? 클래스는 JavaScript ES6 표준의 일부이므로 컴파일 된 JavaScript에서 실제 엔티티로 유지됩니다. 반면에 TypeScript 인터페이스는 트랜스 파일 중에 제거되므로 Nest는 런타임에서 참조 할 수 없습니다.
+이것은 파이프와 같은 기능을 런타임에서 사용할 수 있기 때문에  런타임에서 사용될 수 있는게 중요합니다. 그래서 DTO는 CLASS를 이용해서 만들겠습니다. 
+
+### Pipe란?
+- 파이프는 @Injectable() 데코레이터로 주석이 달린 클래스입니다. 
+- 파이프는 data transformation<strong>[변형]</strong>과 data validation<strong>[유효성]</strong>을 위해서 사용 됩니다.
+- 파이프는 컨트롤러 경로 처리기에 의해 처리되는 인수에 대해 작동합니다. 
+
+- Nest는 메소드가 호출되기 직전에 파이프를 삽입하고 파이프는 메소드로 향하는 인수를 수신하고 이에 대해 작동합니다.
+
+#### Data Transformation
+- 입력 데이터를 원하는 형식으로 변환 (예 : 문자열에서 정수로)
+만약 숫자를 받길 원하는데 문자열 형식으로 온다면 파이프에서 자동으로 숫자로 바꿔줍니다.
+String to Integer       EX)  string  '7'  =>  Integer   7
+
+#### Data Validation
+- 입력 데이터를 평가하고 유효한 경우 변경되지 않은 상태로 전달하면됩니다. 그렇지 않으면 데이터가 올바르지 않을 때 예외를 발생시킵니다.
+만약 이름의 길이가 10자 이하여야 하는데 10자 이상 되면 에러를 발생시킵니다.
+
+### Pipe 사용 방법(Binding Pipes)
+- 파이프를 사용하는 방법(Binding pipes)은 세가지로 나눠질수 있습니다.
+
+<em>Handler-level Pipes ,Parameter-level Pipes, Global-level Pipes</em> 입니다
+이름에서 말하는 것 그대로  핸들러 레벨, 파라미터 레벨, 글로벌 레벨로 파이프 사용할 수 있습니다
+
+#### Handler-level Pipes
+- 핸들러 레벨에서 @UsePipes() 데코레이터를 이용해서 사용 할 수 있습니다.
+이 파이프는 모든 파라미터에 적용이 됩니다. (title, description)
+
+#### Parameter-level Pipes
+- 파라미터 레벨의 파이프 이기에 특정한 파라미터에게만 적용이 되는 파이프 입니다.
+아래와 같은 경우에는 title만 파라미터 파이브가 적용이 됩니다.
+
+#### Global Pipes
+- 글로벌 파이프로서 애플리케이션 레벨의 파이브 입니다. 클라이언트에서 들어오는 모든 요청에 적용이 됩니다. 가장 상단 영역인 main.ts에 넣어주시면 됩니다.
+
+### Built-in Pipes
+- Nest JS 에 기본적으로 사용할 수 있게 만들어 놓은 6가지의 파이프가 있습니다.
+
+- ValidationPipe
+- ParseIntPipe
+- ParseBoolPipe
+- ParseArrayPipe
+- ParseUUIDPipe
+- DefaultValuePipe
+
+## 파이프 유효성 체크 
+
+### 필요한 모듈
+- class-validator 
+- class-transformer 
+
+```bash
+npm install class-validator class-transformer --save
+```
+[Docs](https://github.com/typestack/class-validator#manual-validation)
+<hr>
+
+### 커스텀 파이프 구현 방법
+- 먼저 PipeTransform이란 인터페이스를 새롭게 만들 커스텀 파이프에 구현해줘야 합니다.
+- 이 PipeTransform 인터페이스는 모든 파이프에서 구현해줘야 하는 인터페이스입니다.
+- 그리고 이것과 함께 모든 파이프는 transform() 메소드를 필요합니다. 
+- 이 메소드는 NestJS가 인자(arguments)를 처리하기 위해서 사용됩니다.
+
+## TypeORM
+- TypeORM은 node.js에서 실행되고 TypeScript로 작성된 객체 관계형
+매퍼 라이브러리입니다.
+
+- TypeORM은 MySQL, PostgreSQL, MariaDB, SQLite, MS SQL Server, Oracle, SAP Hana 및 WebSQL과 같은 여러 데이터베이스를 지원합니다. 
+
+### ORM(Object Relational Mapping) 이란?
+- 객체와 관계형 데이터베이스의 데이터를 자동으로 변형 및 연결하는 작업입니다.
+
+- ORM을 이용한 개발은 객체와 데이터베이스의 변형에 유연하게 사용할 수 있습니다.
+
+![ORM](./img/ORM.PNG)
+
+### TypeORM vs Pure Javascript
+```javascript
+// TypeORM
+const boards = Board.find({ title: 'Hello' , status: 'PUBLIC' });
+
+// Pure Javascript
+db.query('SELECT * FROM boards WHERE title = "Hello" AND status = "PUBLIC" , (err, result) => {
+    if(err) {
+        throw new Error('Error');
+    }
+    boards = result.rows;
+});
+```
+
+### TypeORM 특징과 이점
+<hr>
+- 모델을 기반으로 데이터베이스 테이블 체계를 <em>자동</em>으로 생성합니다.
+- 데이터베이스에서 개체를 쉽게 삽입, 업데이트 및 삭제할 수 있습니다.
+- 테이블 간의 매핑 (일대일, 일대 다 및 다 대다)을 만듭니다.
+- 간단한 CLI 명령을 제공합니다.
+
+- TypeORM은 간단한 코딩으로 ORM 프레임 워크를 사용하기 쉽습니다. 
+- TypeORM은 다른 모듈과 쉽게 통합됩니다.
+<br>
+
+### TypeORM 설치 모듈
+<hr>
+@nestjs/typeorm
+- NestJS에서 TypeORM을 사용하기 위해 연동시켜주는 모듈
+
+typeorm
+- TypeORM 모듈
+
+pg 
+- Postgres 모듈
+
+```bash
+# 모듈 설치
+npm install pg typeorm @nestjs/typeorm --save
+```
+[Docs](https://docs.nestjs.com/techniques/database)
+
+### 게시물을 위한 Entity 생성
+왜 Entity를 생성해야하나요? 
+원래 ORM 없이 데이터베이스 테이블을 생성할 때를 먼저 보겠습니다. 
+
+```sql
+CREATE TABLE board ( 
+   id     INTEGER AUTO_INCREMENT PRIMARY KEY. 
+   title  VARCHAR(255)  NOT NULL,
+   decsription VARCHAR(255) NOT NULL  
+)
+```
+
+이런 식으로 테이블을 생성해줍니다. 하지만 TypeORM을 사용할 떄는 
+데이터베이스 테이블로 변환 되는 Class이기 때문에 위에 처럼하지 않고 
+클래스를 생성한 후 그 안에 컬럼들을 정의해주시면 됩니다. 
+
+### @Entity()
+- Entity () 데코레이터 클래스는 Board 클래스가 엔티티임을 나타내는 데 사용됩니다.     CREATE TABLE board 부분입니다. 
+
+### @PrimaryGeneratedColumn()   <!--PRK -->
+- PrimaryGeneratedColumn () 데코레이터 클래스는 id 열이 Board 엔터티의 기본 키 열임을 나타내는 데 사용됩니다.
+
+### @Column()
+- Column () 데코레이터 클래스는 Board 엔터티의 title 및 description과 같은 다른 열을 나타내는 데 사용됩니다.
+
+### Repository란?
+- 리포지토리는 엔터티 개체와 함께 작동하며 엔티티 찾기, 삽입, 업데이트, 삭제 등을 처리합니다.
+공식 문서 주소
+
+[Docs](http://typeorm.delightful.studio/classes/_repository_repository_.repository.html)
